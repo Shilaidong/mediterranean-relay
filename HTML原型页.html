@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>地中海中继站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #E8E4D9;
+            --accent-blue: #1A4B9E;
+            --shadow-light: rgba(255, 255, 255, 0.85);
+            --shadow-dark: rgba(0, 0, 0, 0.07);
+        }
+
+        /* 基础设置：禁止系统弹性滚动和长按菜单以提升 App 感 */
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--accent-blue);
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+
+        .font-serif { font-family: 'Playfair Display', serif; }
+
+        /* 高级软浮雕 - 生产级参数 */
+        .neumo-outset {
+            background: var(--bg-color);
+            box-shadow: 5px 5px 12px var(--shadow-dark), 
+                        -5px -5px 12px var(--shadow-light);
+        }
+
+        .neumo-inset {
+            background: var(--bg-color);
+            box-shadow: inset 3px 3px 8px var(--shadow-dark), 
+                        inset -3px -3px 8px var(--shadow-light);
+        }
+
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 针对 iOS 底部安全区域的填充 */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .pt-safe {
+            padding-top: env(safe-area-inset-top);
+        }
+
+        /* 增加微小的颗粒质感 */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <main class="flex-1 overflow-y-auto no-scrollbar pt-safe">
+        <header class="text-center pt-12 pb-8">
+            <h1 class="text-[38px] font-serif font-bold tracking-tight">地中海中继站</h1>
+            <p class="text-[10px] tracking-[0.4em] font-bold opacity-40 mt-1 uppercase">Mediterranean Relay</p>
+        </header>
+
+        <div class="px-6 mb-10">
+            <div class="flex items-center justify-between">
+                <span class="text-[12px] font-serif italic opacity-60">Archive Collection</span>
+                <div class="flex-1 ml-6 h-8 rounded-full flex items-center px-4 neumo-inset">
+                    <span class="text-[10px] opacity-40">12</span>
+                    <div class="flex-1 h-[1.5px] bg-[#1A4B9E]/20 mx-4 relative">
+                        <div class="absolute inset-0 bg-[#1A4B9E] w-1/2"></div>
+                        <div class="absolute -top-[7px] left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#E8E4D9] border-[1.5px] border-[#1A4B9E] shadow-sm"></div>
+                    </div>
+                    <span class="text-[10px] opacity-40">85</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-6 gap-y-12 px-6 pb-40">
+            
+            <div class="flex flex-col active:scale-95 transition-transform duration-200">
+                <div class="aspect-square neumo-outset p-1.5 rounded-sm">
+                    <div class="w-full h-full bg-[#D1CCC0] overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=500" class="w-full h-full object-cover mix-blend-multiply opacity-80" alt="">
+                    </div>
+                </div>
+                <h3 class="font-serif text-[18px] mt-4 leading-none">Kind of Blue</h3>
+                <p class="text-[9px] font-bold tracking-tighter opacity-40 mt-2 uppercase">MILES DAVIS</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm font-bold tracking-tight">45 Cr.</span>
+                    <div class="w-2 h-2 rounded-full border border-[#1A4B9E]/30 bg-white shadow-inner"></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col active:scale-95 transition-transform duration-200">
+                <div class="aspect-square neumo-outset p-1.5 rounded-sm">
+                    <div class="w-full h-full bg-[#D1CCC0] overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1605672611471-782163515431?q=80&w=500" class="w-full h-full object-cover mix-blend-multiply opacity-80" alt="">
+                    </div>
+                </div>
+                <h3 class="font-serif text-[18px] mt-4 leading-none">Aja</h3>
+                <p class="text-[9px] font-bold tracking-tighter opacity-40 mt-2 uppercase">STEELY DAN</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm font-bold tracking-tight">32 Cr.</span>
+                    <div class="w-2 h-2 rounded-full bg-[#1A4B9E] shadow-md"></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col active:scale-95 transition-transform duration-200">
+                <div class="aspect-square neumo-outset p-1.5 rounded-sm">
+                    <div class="w-full h-full bg-[#D1CCC0] overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1619983081563-430f63602796?q=80&w=500" class="w-full h-full object-cover mix-blend-multiply opacity-80" alt="">
+                    </div>
+                </div>
+                <h3 class="font-serif text-[18px] mt-4 leading-none">Rumours</h3>
+                <p class="text-[9px] font-bold tracking-tighter opacity-40 mt-2 uppercase">FLEETWOOD MAC</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm font-bold tracking-tight">28 Cr.</span>
+                    <div class="w-2 h-2 rounded-full border border-[#1A4B9E]/30 bg-white shadow-inner"></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col active:scale-95 transition-transform duration-200">
+                <div class="aspect-square neumo-outset p-1.5 rounded-sm">
+                    <div class="w-full h-full bg-[#D1CCC0] overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=500" class="w-full h-full object-cover mix-blend-multiply opacity-80" alt="">
+                    </div>
+                </div>
+                <h3 class="font-serif text-[18px] mt-4 leading-none">Blue Train</h3>
+                <p class="text-[9px] font-bold tracking-tighter opacity-40 mt-2 uppercase">JOHN COLTRANE</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm font-bold tracking-tight">55 Cr.</span>
+                    <div class="w-2 h-2 rounded-full bg-[#1A4B9E] shadow-md"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <button class="fixed bottom-28 right-6 w-16 h-16 neumo-outset rounded-full flex items-center justify-center active:scale-90 transition-all z-20">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+
+    <nav class="bg-[#E8E4D9]/80 backdrop-blur-xl border-t border-white/20 px-8 pt-4 pb-safe z-30">
+        <div class="flex justify-between items-center h-12">
+            <div class="flex flex-col items-center opacity-30">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                <span class="text-[8px] font-bold mt-1 tracking-widest">HOME</span>
+            </div>
+            <div class="flex flex-col items-center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                <span class="text-[8px] font-bold mt-1 tracking-widest">BROWSE</span>
+                <div class="w-1 h-1 bg-[#1A4B9E] rounded-full mt-1"></div>
+            </div>
+            <div class="flex flex-col items-center opacity-30">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span class="text-[8px] font-bold mt-1 tracking-widest">PROFILE</span>
+            </div>
+        </div>
+    </nav>
+
+</body>
+</html>
