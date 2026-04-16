@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, MessageCircle, TrendingUp } from 'lucide-react';
-import { transactions, posts, collectors } from '../data/community';
+import { ArrowRight, MessageCircle, TrendingUp, Loader2 } from 'lucide-react';
 import { HapticTap } from '../components/HapticTap';
+import { useTransactions, usePosts, useCollectors } from '../hooks/useCommunity';
 
 export function Community() {
+  const { data: transactions, isLoading: txLoading } = useTransactions();
+  const { data: posts, isLoading: postsLoading } = usePosts();
+  const { data: collectors, isLoading: collectorsLoading } = useCollectors();
+
   return (
     <div className="h-full overflow-y-auto no-scrollbar pt-safe">
       <header className="text-center pt-10 pb-6">
@@ -27,35 +31,45 @@ export function Community() {
             </div>
             <span className="text-[10px] opacity-40">最近成交</span>
           </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-            {transactions.map((t, i) => (
-              <motion.div
-                key={t.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="shrink-0 w-40 bg-paper shadow-neumo rounded-xl p-3"
-              >
-                <div className="w-full aspect-square bg-ink/5 rounded-lg overflow-hidden mb-3">
-                  <img
-                    src={t.cover}
-                    alt={t.albumTitle}
-                    className="w-full h-full object-cover mix-blend-multiply opacity-80"
-                  />
-                </div>
-                <p className="text-[11px] font-serif font-bold truncate">
-                  {t.albumTitle}
-                </p>
-                <p className="text-[9px] opacity-50 truncate">{t.artist}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[12px] font-bold text-stamp">
-                    {t.price} Cr.
-                  </span>
-                  <span className="text-[9px] opacity-40">{t.date}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {txLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 size={20} className="text-ink animate-spin" />
+            </div>
+          ) : !transactions || transactions.length === 0 ? (
+            <p className="text-center py-8 opacity-40 font-serif italic text-[12px]">
+              暂无成交记录
+            </p>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+              {transactions.map((t, i) => (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="shrink-0 w-40 bg-paper shadow-neumo rounded-xl p-3"
+                >
+                  <div className="w-full aspect-square bg-ink/5 rounded-lg overflow-hidden mb-3">
+                    <img
+                      src={t.cover}
+                      alt={t.albumTitle}
+                      className="w-full h-full object-cover mix-blend-multiply opacity-80"
+                    />
+                  </div>
+                  <p className="text-[11px] font-serif font-bold truncate">
+                    {t.albumTitle}
+                  </p>
+                  <p className="text-[9px] opacity-50 truncate">{t.artist}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[12px] font-bold text-stamp">
+                      {t.price} Cr.
+                    </span>
+                    <span className="text-[9px] opacity-40">{t.date}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* 热门讨论 */}
@@ -69,45 +83,55 @@ export function Community() {
             </div>
             <span className="text-[10px] opacity-40">热门讨论</span>
           </div>
-          <div className="space-y-3">
-            {posts.map((p, i) => (
-              <motion.div
-                key={p.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-              >
-                <HapticTap
-                  onClick={() => {}}
-                  className="flex items-center gap-3 bg-paper shadow-neumo-inset rounded-xl p-4"
+          {postsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 size={20} className="text-ink animate-spin" />
+            </div>
+          ) : !posts || posts.length === 0 ? (
+            <p className="text-center py-8 opacity-40 font-serif italic text-[12px]">
+              暂无讨论帖
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {posts.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
                 >
-                  {p.cover && (
-                    <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-ink/5">
-                      <img
-                        src={p.cover}
-                        alt=""
-                        className="w-full h-full object-cover mix-blend-multiply opacity-80"
-                      />
+                  <HapticTap
+                    onClick={() => {}}
+                    className="flex items-center gap-3 bg-paper shadow-neumo-inset rounded-xl p-4"
+                  >
+                    {p.cover && (
+                      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-ink/5">
+                        <img
+                          src={p.cover}
+                          alt=""
+                          className="w-full h-full object-cover mix-blend-multiply opacity-80"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-serif font-bold leading-snug line-clamp-2">
+                        {p.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-[9px] opacity-50">{p.author}</span>
+                        <span className="text-[9px] opacity-30">·</span>
+                        <span className="text-[9px] opacity-50">{p.time}</span>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-serif font-bold leading-snug line-clamp-2">
-                      {p.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[9px] opacity-50">{p.author}</span>
-                      <span className="text-[9px] opacity-30">·</span>
-                      <span className="text-[9px] opacity-50">{p.time}</span>
+                    <div className="flex items-center gap-1 text-[10px] opacity-50 shrink-0">
+                      <MessageCircle size={12} />
+                      <span>{p.replies}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] opacity-50 shrink-0">
-                    <MessageCircle size={12} />
-                    <span>{p.replies}</span>
-                  </div>
-                </HapticTap>
-              </motion.div>
-            ))}
-          </div>
+                  </HapticTap>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* 推荐关注 */}
@@ -121,27 +145,37 @@ export function Community() {
             </HapticTap>
           </div>
           <span className="text-[10px] opacity-40 block mb-4">推荐关注</span>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-            {collectors.map((c, i) => (
-              <motion.div
-                key={c.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.06 }}
-                className="shrink-0 flex flex-col items-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-paper shadow-neumo p-0.5">
-                  <img
-                    src={c.avatar}
-                    alt={c.name}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                </div>
-                <p className="text-[11px] font-bold mt-2">{c.name}</p>
-                <p className="text-[9px] opacity-50">{c.followers} followers</p>
-              </motion.div>
-            ))}
-          </div>
+          {collectorsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 size={20} className="text-ink animate-spin" />
+            </div>
+          ) : !collectors || collectors.length === 0 ? (
+            <p className="text-center py-8 opacity-40 font-serif italic text-[12px]">
+              暂无收藏家
+            </p>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+              {collectors.map((c, i) => (
+                <motion.div
+                  key={c.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.06 }}
+                  className="shrink-0 flex flex-col items-center"
+                >
+                  <div className="w-16 h-16 rounded-full bg-paper shadow-neumo p-0.5">
+                    <img
+                      src={c.avatar}
+                      alt={c.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+                  <p className="text-[11px] font-bold mt-2">{c.name}</p>
+                  <p className="text-[9px] opacity-50">{c.followers} followers</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

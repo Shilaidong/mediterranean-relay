@@ -1,14 +1,14 @@
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Play, Pause } from 'lucide-react';
-import { findAlbum } from '../data/albums';
+import { ArrowLeft, Play, Pause, Loader2 } from 'lucide-react';
 import { HapticTap } from '../components/HapticTap';
+import { useAlbum } from '../hooks/useAlbums';
 
 export function Detail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const album = findAlbum(id || '');
+  const { data: album, isLoading } = useAlbum(id || '');
   const rotateY = useMotionValue(0);
   const [playing, setPlaying] = useState(false);
   const [hoverNote, setHoverNote] = useState<number | null>(null);
@@ -28,6 +28,14 @@ export function Detail() {
 
   const frontOpacity = useTransform(rotateY, [-90, 0, 90], [0, 1, 0]);
   const backOpacity = useTransform(rotateY, [90, 180, 270], [0, 1, 0]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 size={24} className="text-ink animate-spin" />
+      </div>
+    );
+  }
 
   if (!album) {
     return (

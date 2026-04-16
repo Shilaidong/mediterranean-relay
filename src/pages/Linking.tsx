@@ -1,8 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Upload } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Loader2 } from 'lucide-react';
 import { HapticTap } from '../components/HapticTap';
+import { useListAlbum } from '../hooks/useAlbums';
+import { supabase } from '../lib/supabase';
+import { Genre } from '../data/albums';
 
 type Step = 0 | 1 | 2;
 
@@ -11,9 +14,22 @@ export function Linking() {
   const [step, setStep] = useState<Step>(0);
   const [photo, setPhoto] = useState<string | null>(null);
   const [calibrating, setCalibrating] = useState(false);
+  const [listing, setListing] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const listAlbumMutation = useListAlbum();
 
-  // 第 1 步自动完成扫描
+  // Mock album data for demo (in production, this would come from AI recognition)
+  const mockAlbum = {
+    title: 'Kind of Blue',
+    artist: 'Miles Davis',
+    year: 1959,
+    rarity: 72,
+    price: 45,
+    genre: 'Jazz' as Genre,
+    wear_grade: 'Near Mint',
+  };
+
+  // 第 0 步自动完成扫描
   useEffect(() => {
     if (step === 0) {
       const t = setTimeout(() => setStep(1), 2400);
@@ -31,6 +47,61 @@ export function Linking() {
       setTimeout(() => setCalibrating(false), 1600);
     };
     reader.readAsDataURL(f);
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!photo) return null;
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return null;
+
+    const fileExt = photo.split(';')[0].split('/')[1];
+    const fileName = `${userData.user.id}/${Date.now()}.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from('album-covers')
+      .upload(fileName, photo, {
+        contentType: `image/${fileExt}`,
+      });
+
+    if (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('album-covers')
+      .getPublicUrl(data.path);
+
+    return urlData.publicUrl;
+  };
+
+  const handlePublish = async () => {
+    if (!photo || listing) return;
+
+    setListing(true);
+    try {
+      const coverUrl = await uploadImage();
+
+      await listAlbumMutation.mutateAsync({
+        title: mockAlbum.title,
+        artist: mockAlbum.artist,
+        year: mockAlbum.year,
+        rarity: mockAlbum.rarity,
+        price: mockAlbum.price,
+        cover: coverUrl || photo, // fallback to base64
+        genre: mockAlbum.genre,
+        wear_grade: mockAlbum.wear_grade,
+        wear_notes: [],
+        tracks: [],
+      });
+
+      navigate('/browse');
+    } catch (error) {
+      console.error('Listing error:', error);
+    } finally {
+      setListing(false);
+    }
   };
 
   return (
@@ -79,11 +150,12 @@ export function Linking() {
               </p>
               <div className="mt-8 aspect-square bg-paper shadow-neumo-inset rounded-2xl relative overflow-hidden">
                 <div className="absolute inset-10 border border-ink/30 rounded-md" />
-                <div className="absolute inset-10 border-[3px] border-ink rounded-md"
-                     style={{
-                       clipPath:
-                         'polygon(0 0, 20% 0, 20% 4%, 4% 4%, 4% 20%, 0 20%, 0 0, 80% 0, 100% 0, 100% 20%, 96% 20%, 96% 4%, 80% 4%, 80% 0, 100% 80%, 100% 100%, 80% 100%, 80% 96%, 96% 96%, 96% 80%, 100% 80%, 0 80%, 0 100%, 20% 100%, 20% 96%, 4% 96%, 4% 80%, 0 80%)',
-                     }}
+                <div
+                  className="absolute inset-10 border-[3px] border-ink rounded-md"
+                  style={{
+                    clipPath:
+                      'polygon(0 0, 20% 0, 20% 4%, 4% 4%, 4% 20%, 0 20%, 0 0, 80% 0, 100% 0, 100% 20%, 96% 20%, 96% 4%, 80% 4%, 80% 0, 100% 80%, 100% 100%, 80% 100%, 80% 96%, 96% 96%, 96% 80%, 100% 80%, 0 80%, 0 100%, 20% 100%, 20% 96%, 4% 96%, 4% 80%, 0 80%)',
+                  }}
                 />
                 {/* 扫描光带 */}
                 <motion.div
@@ -129,12 +201,12 @@ export function Linking() {
                   </div>
                   <div className="flex-1">
                     <p className="text-[10px] tracking-widest opacity-50 uppercase">
-                      Columbia · 1959
+                      {mockAlbum.artist} · {mockAlbum.year}
                     </p>
                     <p className="font-serif text-[20px] leading-tight mt-0.5">
-                      Kind of Blue
+                      {mockAlbum.title}
                     </p>
-                    <p className="text-[11px] mt-0.5 opacity-60">Miles Davis</p>
+                    <p className="text-[11px] mt-0.5 opacity-60">{mockAlbum.price} Cr.</p>
                   </div>
                 </div>
 
@@ -153,7 +225,7 @@ export function Linking() {
                     <span className="text-[10px] opacity-50">68 Cr.</span>
                   </div>
                   <p className="text-center mt-2 font-serif text-[14px]">
-                    建议挂牌 ≈ <span className="font-bold">45 Cr.</span>
+                    建议挂牌 ≈ <span className="font-bold">{mockAlbum.price} Cr.</span>
                   </p>
                 </div>
               </div>
@@ -236,16 +308,25 @@ export function Linking() {
               </div>
 
               <HapticTap
-                disabled={!photo || calibrating}
-                onClick={() => navigate('/browse')}
+                disabled={!photo || calibrating || listing}
+                onClick={handlePublish}
                 className={`w-full h-14 mt-8 rounded-full font-bold tracking-[0.3em] text-[12px] uppercase flex items-center justify-center gap-2 ${
-                  !photo || calibrating
+                  !photo || calibrating || listing
                     ? 'bg-paper shadow-neumo-inset opacity-40'
                     : 'bg-ink text-paper shadow-neumo'
                 }`}
               >
-                <Upload size={14} />
-                发布至中继站
+                {listing ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    发布中…
+                  </>
+                ) : (
+                  <>
+                    <Upload size={14} />
+                    发布至中继站
+                  </>
+                )}
               </HapticTap>
             </motion.div>
           )}

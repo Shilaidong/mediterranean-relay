@@ -1,23 +1,25 @@
-import { useMemo, useState } from 'react';
-import { albums, Genre } from '../data/albums';
+import { useState } from 'react';
+import { Genre } from '../data/albums';
 import { AlbumCard } from '../components/AlbumCard';
 import { RelaySlider } from '../components/RelaySlider';
 import { GenreCarousel } from '../components/GenreCarousel';
 import { FloatingAction } from '../components/FloatingAction';
+import { useMarketAlbums } from '../hooks/useAlbums';
+import { Loader2 } from 'lucide-react';
 
 export function Browse() {
   const [rarity, setRarity] = useState(50);
   const [genre, setGenre] = useState<Genre | 'All'>('All');
+  const { data: albums, isLoading } = useMarketAlbums();
 
-  const visible = useMemo(() => {
-    // 仅显示在售专辑（未拥有），且匹配稀缺度和风格
-    return albums.filter((a) => {
-      if (a.owned) return false;
-      if (Math.abs(a.rarity - rarity) > 40) return false;
-      if (genre !== 'All' && a.genre !== genre) return false;
-      return true;
-    });
-  }, [rarity, genre]);
+  const visible = albums
+    ? albums.filter((a) => {
+        if (a.owned) return false;
+        if (Math.abs(a.rarity - rarity) > 40) return false;
+        if (genre !== 'All' && a.genre !== genre) return false;
+        return true;
+      })
+    : [];
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pt-safe">
@@ -44,16 +46,22 @@ export function Browse() {
         <GenreCarousel value={genre} onChange={setGenre} />
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-12 px-6 pb-40">
-        {visible.map((a) => (
-          <AlbumCard key={a.id} album={a} />
-        ))}
-        {visible.length === 0 && (
-          <div className="col-span-2 text-center py-20 opacity-40 font-serif italic">
-            暂无匹配此筛选条件的专辑
-          </div>
-        )}
-      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 size={24} className="text-ink animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-12 px-6 pb-40">
+          {visible.map((a) => (
+            <AlbumCard key={a.id} album={a} />
+          ))}
+          {visible.length === 0 && (
+            <div className="col-span-2 text-center py-20 opacity-40 font-serif italic">
+              暂无匹配此筛选条件的专辑
+            </div>
+          )}
+        </div>
+      )}
 
       <FloatingAction />
     </div>
