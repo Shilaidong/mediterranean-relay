@@ -1,41 +1,48 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';
 import { PageTitle, SectionLabel } from '@/components/page-copy';
-import type { ProfileResponse } from '@/lib/types';
+import { PrototypeAlbumCard } from '@/components/prototype-album-card';
+import type { ListingSummary } from '@/lib/types';
+
+async function readListingsResponse(response: Response) {
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : {};
+  if (!response.ok) {
+    throw new Error(payload.error ?? 'Failed to load relay market');
+  }
+  return (payload.listings ?? []) as ListingSummary[];
+}
 
 export function HomePageClient() {
   const pull = useMotionValue(0);
   const labelOpacity = useTransform(pull, [0, 60], [0, 1]);
-  const [payload, setPayload] = useState<ProfileResponse | null>(null);
+  const [listings, setListings] = useState<ListingSummary[]>([]);
   const [fetching, setFetching] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  async function loadProfile() {
+  async function loadListings() {
     setFetching(true);
     try {
-      const response = await fetch('/api/profile/me');
-      const nextPayload = await response.json();
-      if (!response.ok) {
-        throw new Error(nextPayload.error ?? 'Failed to load collection');
-      }
-      setPayload(nextPayload as ProfileResponse);
+      const response = await fetch('/api/market/listings', { cache: 'no-store' });
+      const nextListings = await readListingsResponse(response);
+      setListings(nextListings);
       setError('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load collection');
+      setError(err instanceof Error ? err.message : 'Failed to load relay market');
+      setListings([]);
     } finally {
       setFetching(false);
     }
   }
 
   useEffect(() => {
-    void loadProfile();
+    void loadListings();
   }, []);
 
   async function handleRefresh() {
@@ -43,7 +50,7 @@ export function HomePageClient() {
     if (navigator.vibrate) {
       navigator.vibrate(15);
     }
-    await loadProfile();
+    await loadListings();
     setTimeout(() => {
       setRefreshing(false);
       pull.set(0);
@@ -56,7 +63,7 @@ export function HomePageClient() {
         style={{ height: pull, opacity: labelOpacity }}
         className="flex items-center justify-center text-[10px] font-bold uppercase tracking-widest opacity-60"
       >
-        {refreshing ? 'Rewinding…' : 'Pull to Refresh'}
+        {refreshing ? 'Rewinding...' : 'Pull to Refresh'}
       </motion.div>
 
       <motion.div
@@ -76,7 +83,7 @@ export function HomePageClient() {
           }
         }}
       >
-        <PageTitle english="My Collection" chinese="个人收藏" />
+        <PageTitle english="Relay Home" chinese="真实上架" />
 
         {fetching ? (
           <div className="flex items-center justify-center py-20">
@@ -84,53 +91,54 @@ export function HomePageClient() {
           </div>
         ) : (
           <div className="space-y-8 px-6 pb-40">
-            {!payload?.ownedItems.length ? (
+            {!listings.length ? (
               <div className="py-20 text-center font-serif italic opacity-40">
-                {error || '暂无收藏，快去逛逛市场吧'}
+                {error || '暂无客户上架内容，发布第一张唱片后这里会自动出现'}
               </div>
             ) : (
-              <section>
-                <SectionLabel
-                  english="Owned"
-                  chinese="已拥有"
-                  count={payload.ownedItems.length.toString().padStart(2, '0')}
-                />
-                <div className="paper-inset p-4">
-                  <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
-                    {payload.ownedItems.map((item) => (
-                      <div key={item.id} className="w-36 shrink-0">
-                        <Link href="/browse" className="flex flex-col">
-                          <div className="paper-panel aspect-square rounded-2xl p-2">
-                            <div className="relative h-full w-full overflow-hidden rounded-xl bg-inkSoft">
-                              {item.coverPhotoUrl || item.release.coverUrl ? (
-                                <Image
-                                  src={item.coverPhotoUrl ?? item.release.coverUrl ?? ''}
-                                  alt={item.release.title}
-                                  fill
-                                  sizes="144px"
-                                  className="object-cover opacity-80 mix-blend-multiply"
-                                />
-                              ) : null}
-                            </div>
-                          </div>
-                          <h3 className="mt-4 font-serif text-[18px] leading-none">
-                            {item.release.title}
-                          </h3>
-                          <p className="mt-2 text-[9px] font-bold uppercase tracking-tighter opacity-40">
-                            {item.release.artist}
-                          </p>
-                          <div className="mt-3 flex items-center justify-between">
-                            <span className="text-xs font-bold tracking-tight">
-                              {item.conditionGrade}
-                            </span>
-                            <div className="h-2 w-2 rounded-full border border-ink/30 bg-white shadow-inner" />
-                          </div>
-                        </Link>
+              <>
+                <section>
+                  <SectionLabel
+                    english="Live Market"
+                    chinese="实时市场"
+                    count={listings.length.toString().padStart(2, '0')}
+                  />
+                  <Link
+                    href={`/listing/${listings[0].id}`}
+                    className="paper-panel block overflow-hidden rounded-[2rem] p-4"
+                  >
+                    <div className="flex items-end justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] opacity-45">
+                          Latest Customer Upload · 最新客户上架
+                        </p>
+                        <h2 className="mt-4 font-serif text-[34px] leading-none tracking-tight">
+                          {listings[0].release.title}
+                        </h2>
+                        <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.28em] opacity-45">
+                          {listings[0].release.artist} · {listings[0].seller.username}
+                        </p>
                       </div>
+                      <span className="shrink-0 rounded-full border border-ink/10 bg-white/35 px-4 py-2 text-sm font-bold backdrop-blur-md">
+                        {listings[0].askingPrice} Cr.
+                      </span>
+                    </div>
+                  </Link>
+                </section>
+
+                <section>
+                  <SectionLabel
+                    english="Customer Uploads"
+                    chinese="客户上传"
+                    count={listings.length.toString().padStart(2, '0')}
+                  />
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-12">
+                    {listings.map((listing) => (
+                      <PrototypeAlbumCard key={listing.id} listing={listing} />
                     ))}
                   </div>
-                </div>
-              </section>
+                </section>
+              </>
             )}
           </div>
         )}

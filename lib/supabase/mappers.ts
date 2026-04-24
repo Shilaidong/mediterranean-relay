@@ -21,7 +21,7 @@ export function mapListing(row: any): ListingSummary {
     coverPhotoUrl: row.cover_photo_url ?? null,
     seller: {
       id: seller.id,
-      username: seller.username ?? 'Relay House',
+      username: seller.username ?? 'Relay Collector',
       avatarUrl: seller.avatar_url ?? null,
     },
     release: {
@@ -57,7 +57,7 @@ export function mapPost(row: any): CommunityPost {
     coverImageUrl: row.cover_image_url ?? null,
     author: {
       id: row.author?.id,
-      username: row.author?.username ?? 'Relay House',
+      username: row.author?.username ?? 'Relay Collector',
       avatarUrl: row.author?.avatar_url ?? null,
     },
     release: row.release

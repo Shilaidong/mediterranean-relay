@@ -1,7 +1,5 @@
-import { requireUser } from '@/lib/auth';
 import { HomePageClient } from '@/components/home-page-client';
 
-export default async function HomePage() {
-  await requireUser('/home');
+export default function HomePage() {
   return <HomePageClient />;
 }
