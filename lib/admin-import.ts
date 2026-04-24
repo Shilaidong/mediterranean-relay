@@ -206,10 +206,13 @@ export function buildImportTemplateWorkbook() {
     ['Mediterranean Relay Import Template'],
     ['1. 在 account 表填写目标账号。若账号不存在，导入时会自动创建。'],
     ['2. 在 collection 表一行代表一张要导入的专辑/库存；有价格时默认公开上架，publish=NO 时仅导入收藏。'],
-    ['3. matrix_codes、condition_notes、photo_urls 用竖线 | 分隔。'],
-    ['4. tracklist 用 `歌曲名::时长 | 歌曲名::时长`。'],
-    ['5. 如果想导入成系统展示内容，请把 target_username 填成 SYSTEM。'],
-    ['6. 在管理员页面可先下载本模板，再填好后重新上传。'],
+    ['3. asking_price 留空时会尝试使用 suggested_price_max 或 suggested_price_min 生成上架价格。'],
+    ['4. publish 留空且有价格时默认公开；写 NO / FALSE / 0 / 否 时只导入收藏，不出现在 Browse。'],
+    ['5. clear_existing=YES 会先清空目标账号旧帖子、库存和在售条目，请谨慎使用。'],
+    ['6. matrix_codes、condition_notes、photo_urls 用竖线 | 分隔。'],
+    ['7. tracklist 用 `歌曲名::时长 | 歌曲名::时长`。'],
+    ['8. 如果想导入成系统展示内容，请把 target_username 填成 SYSTEM。'],
+    ['9. 在管理员页面可先下载本模板，再填好后重新上传。'],
   ]);
 
   const accountSheet = XLSX.utils.json_to_sheet([
@@ -273,7 +276,7 @@ export function buildImportSpecMarkdown() {
 
 ## 文件结构
 - \`account\`：目标账号信息
-- \`collection\`：专辑、库存、是否上架
+- \`collection\`：专辑、库存、价格与公开状态
 - \`posts\`：社区帖子
 
 ## account 字段
@@ -283,22 +286,22 @@ export function buildImportSpecMarkdown() {
 - \`avatar_url\`：头像链接，可选
 - \`bio\`：简介，可选
 - \`credits\`：导入后积分余额，可选
-- \`clear_existing\`：YES 表示导入前清空该账号当前的帖子、库存和在售条目
+- \`clear_existing\`：YES 表示导入前清空该账号当前的帖子、库存和在售条目；不想清空请留空或填 NO
 
 ## collection 字段
 - \`slug\`：版本唯一标识，建议唯一
 - \`title\` / \`artist\` / \`year\` / \`genre\`：专辑基础信息
 - \`cover_url\`：目录封面
 - \`rarity\`：0-100
-- \`suggested_price_min\` / \`suggested_price_max\`：建议价格
+- \`suggested_price_min\` / \`suggested_price_max\`：建议价格；如果 \`asking_price\` 留空，会尝试用 \`suggested_price_max\`，再尝试 \`suggested_price_min\` 生成上架价格
 - \`matrix_codes\`：多个用 \`|\` 分隔
 - \`tracklist\`：格式 \`歌曲名::时长 | 歌曲名::时长\`
 - \`condition_grade\`：品相等级
 - \`condition_notes\`：多个用 \`|\` 分隔
 - \`photo_urls\`：实物图链接，多个用 \`|\` 分隔
 - \`headline\` / \`description\`：上架文案
-- \`asking_price\`：价格；留空时会尝试用建议价生成上架价格
-- \`publish\`：留空且有价格时默认自动上架；填 NO / FALSE / 0 时仅导入收藏不展示
+- \`asking_price\`：正式售价；有值时默认公开到 Browse
+- \`publish\`：公开控制；留空且有价格时默认自动上架，填 YES 可显式上架，填 NO / FALSE / 0 / 否 时仅导入收藏不展示
 
 ## posts 字段
 - \`title\`：帖子标题
@@ -307,6 +310,8 @@ export function buildImportSpecMarkdown() {
 - \`release_slug\`：可选，关联 collection 里的 slug
 
 ## 备注
+- 游客和未登录用户只能看到 \`market_listings.status=active\` 的条目；管理员导入会在公开上架时自动创建 active listing。
+- 如果导入后 Browse 没出现，优先检查该行是否有价格、\`publish\` 是否写了 NO，以及是否导入到了当前 Supabase 项目。
 - 如果想让导入内容在前台显示为 SYSTEM，请把 \`target_username\` 填成 \`SYSTEM\`。
 - 导入会自动创建缺失的目录条目，并把库存归到目标账号下。`;
 }

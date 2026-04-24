@@ -65,7 +65,7 @@ export function AdminPageClient() {
             <div>
               <p className="font-serif text-[18px] leading-none">Import Workbook</p>
               <p className="mt-1 text-[11px] opacity-60">
-                下载模板，填好后重新上传，就能把内容批量导入到指定账号。
+                下载模板，填好后重新上传；有价格的专辑会默认公开到 Browse。
               </p>
             </div>
           </div>
@@ -117,9 +117,15 @@ export function AdminPageClient() {
           <SectionLabel english="Template Structure" chinese="模板结构" />
           <div className="paper-inset rounded-2xl px-4 py-4 text-[12px] leading-relaxed opacity-70">
             <p>1. `account`：目标账号、密码、积分、是否清空旧内容。</p>
-            <p>2. `collection`：专辑目录、库存信息、是否上架。</p>
+            <p>2. `collection`：专辑目录、库存信息、价格与公开状态。</p>
             <p>3. `posts`：社区帖子。</p>
             <p className="mt-3">
+              `asking_price` 有值时会默认生成公开上架；只有 `publish=NO` 才只导入收藏。
+            </p>
+            <p>
+              `clear_existing=YES` 会先清空目标账号旧内容，再导入新表格。
+            </p>
+            <p>
               想让导入内容显示为 SYSTEM，请把目标用户名写成 `SYSTEM`。
             </p>
           </div>
