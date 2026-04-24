@@ -72,6 +72,21 @@ function truthy(value: unknown) {
   return ['true', 'yes', 'y', '1', '是'].includes(String(value ?? '').trim().toLowerCase());
 }
 
+function falsey(value: unknown) {
+  return ['false', 'no', 'n', '0', '否'].includes(String(value ?? '').trim().toLowerCase());
+}
+
+function shouldPublish(value: unknown, hasPrice: boolean) {
+  const normalized = String(value ?? '').trim();
+  if (!normalized) {
+    return hasPrice;
+  }
+  if (falsey(normalized)) {
+    return false;
+  }
+  return truthy(normalized);
+}
+
 function splitPipeList(value: unknown) {
   return String(value ?? '')
     .split('|')
@@ -140,26 +155,33 @@ export function parseImportWorkbook(buffer: Buffer): ParsedImportWorkbook {
 
   const collectionRows = collectionRaw
     .filter((row) => String(row.title ?? '').trim())
-    .map<ImportCollectionRow>((row) => ({
-      slug: String(row.slug ?? '').trim() || slugify(`${row.artist}-${row.title}-${row.year}`),
-      title: String(row.title ?? '').trim(),
-      artist: String(row.artist ?? '').trim(),
-      year: toNumber(row.year, new Date().getFullYear()),
-      genre: normalizeGenre(String(row.genre ?? 'Rock')),
-      coverUrl: String(row.cover_url ?? '').trim() || null,
-      rarity: Math.max(0, Math.min(100, toNumber(row.rarity, 50))),
-      suggestedPriceMin: toOptionalNumber(row.suggested_price_min),
-      suggestedPriceMax: toOptionalNumber(row.suggested_price_max),
-      matrixCodes: splitPipeList(row.matrix_codes),
-      tracklist: parseTracklist(row.tracklist),
-      conditionGrade: String(row.condition_grade ?? '').trim() || 'Very Good',
-      conditionNotes: splitPipeList(row.condition_notes).map((label) => ({ label })),
-      photoUrls: splitPipeList(row.photo_urls),
-      headline: String(row.headline ?? '').trim() || null,
-      description: String(row.description ?? '').trim() || null,
-      askingPrice: toOptionalNumber(row.asking_price),
-      publish: truthy(row.publish),
-    }));
+    .map<ImportCollectionRow>((row) => {
+      const askingPrice = toOptionalNumber(row.asking_price);
+      const suggestedPriceMin = toOptionalNumber(row.suggested_price_min);
+      const suggestedPriceMax = toOptionalNumber(row.suggested_price_max);
+      const hasPrice = (askingPrice ?? suggestedPriceMax ?? suggestedPriceMin ?? 0) > 0;
+
+      return {
+        slug: String(row.slug ?? '').trim() || slugify(`${row.artist}-${row.title}-${row.year}`),
+        title: String(row.title ?? '').trim(),
+        artist: String(row.artist ?? '').trim(),
+        year: toNumber(row.year, new Date().getFullYear()),
+        genre: normalizeGenre(String(row.genre ?? 'Rock')),
+        coverUrl: String(row.cover_url ?? '').trim() || null,
+        rarity: Math.max(0, Math.min(100, toNumber(row.rarity, 50))),
+        suggestedPriceMin,
+        suggestedPriceMax,
+        matrixCodes: splitPipeList(row.matrix_codes),
+        tracklist: parseTracklist(row.tracklist),
+        conditionGrade: String(row.condition_grade ?? '').trim() || 'Very Good',
+        conditionNotes: splitPipeList(row.condition_notes).map((label) => ({ label })),
+        photoUrls: splitPipeList(row.photo_urls),
+        headline: String(row.headline ?? '').trim() || null,
+        description: String(row.description ?? '').trim() || null,
+        askingPrice,
+        publish: shouldPublish(row.publish, hasPrice),
+      };
+    });
 
   const postRows = postsRaw
     .filter((row) => String(row.title ?? '').trim())
@@ -183,7 +205,7 @@ export function buildImportTemplateWorkbook() {
   const readmeSheet = XLSX.utils.aoa_to_sheet([
     ['Mediterranean Relay Import Template'],
     ['1. 在 account 表填写目标账号。若账号不存在，导入时会自动创建。'],
-    ['2. 在 collection 表一行代表一张要导入的专辑/库存；publish=YES 时会同时上架。'],
+    ['2. 在 collection 表一行代表一张要导入的专辑/库存；有价格时默认公开上架，publish=NO 时仅导入收藏。'],
     ['3. matrix_codes、condition_notes、photo_urls 用竖线 | 分隔。'],
     ['4. tracklist 用 `歌曲名::时长 | 歌曲名::时长`。'],
     ['5. 如果想导入成系统展示内容，请把 target_username 填成 SYSTEM。'],
@@ -275,8 +297,8 @@ export function buildImportSpecMarkdown() {
 - \`condition_notes\`：多个用 \`|\` 分隔
 - \`photo_urls\`：实物图链接，多个用 \`|\` 分隔
 - \`headline\` / \`description\`：上架文案
-- \`asking_price\`：价格
-- \`publish\`：YES 时导入后自动上架
+- \`asking_price\`：价格；留空时会尝试用建议价生成上架价格
+- \`publish\`：留空且有价格时默认自动上架；填 NO / FALSE / 0 时仅导入收藏不展示
 
 ## posts 字段
 - \`title\`：帖子标题

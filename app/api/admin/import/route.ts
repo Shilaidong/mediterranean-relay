@@ -259,6 +259,7 @@ async function upsertRelease(row: ImportCollectionRow) {
 
 async function importCollectionRow(userId: string, row: ImportCollectionRow, releaseId: string) {
   const admin = getAdminSupabase() as any;
+  const listingPrice = row.askingPrice ?? row.suggestedPriceMax ?? row.suggestedPriceMin;
 
   const { data: inventory, error: inventoryError } = await admin
     .from('inventory_items')
@@ -278,13 +279,13 @@ async function importCollectionRow(userId: string, row: ImportCollectionRow, rel
     throw new Error(inventoryError?.message ?? `Failed to import inventory for ${row.title}.`);
   }
 
-  if (row.publish && row.askingPrice && row.askingPrice > 0) {
+  if (row.publish && listingPrice && listingPrice > 0) {
     const { error: listingError } = await admin.from('market_listings').insert({
       inventory_item_id: inventory.id,
       seller_id: userId,
       headline: row.headline,
       description: row.description,
-      asking_price: row.askingPrice,
+      asking_price: listingPrice,
       suggested_price_min: row.suggestedPriceMin,
       suggested_price_max: row.suggestedPriceMax,
       cover_photo_url: row.photoUrls[0] ?? row.coverUrl,
@@ -353,7 +354,8 @@ export async function POST(request: Request) {
       const release = await upsertRelease(row);
       releaseMap.set(release.slug, release.id);
       await importCollectionRow(targetUserId, row, release.id);
-      if (row.publish) {
+      const listingPrice = row.askingPrice ?? row.suggestedPriceMax ?? row.suggestedPriceMin;
+      if (row.publish && listingPrice && listingPrice > 0) {
         publishedCount += 1;
       }
     }
