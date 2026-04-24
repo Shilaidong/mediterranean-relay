@@ -1,68 +1,103 @@
-# 地中海中继站 · Mediterranean Relay
+# Mediterranean Relay
 
-顶级二手黑胶数字拍卖行的移动端前端原型。软浮雕 + 地中海 70s 复古 + 未来主义交互。
+Mediterranean Relay 现已从原本的 Vite 原型切换为 `Next.js App Router + Supabase + Vercel` 的可上线骨架。旧原型已移动到 `legacy-src/` 作为视觉参考，主应用迁移到新的 `app/` 路由结构。
+
+## 当前能力
+
+- 邮箱密码注册登录
+- 市场浏览与详情页
+- AI 辅助上架流程
+- 积分钱包式购买交易
+- 个人资产与积分流水
+- 社区公开阅读与登录发帖
 
 ## 技术栈
 
-- Vite 5 + React 18 + TypeScript
-- Tailwind CSS v3（自定义 `paper` / `ink` / `silver` / neumo 阴影）
-- framer-motion（3D 翻转、盖章动画、阻尼拨盘、下拉刷新）
-- react-router-dom v6
-- lucide-react 图标
+- Next.js 16 App Router
+- React 19
+- Tailwind CSS v3
+- Supabase Auth / Database / Storage
+- framer-motion
+- Vercel
 
-## 启动
+## 本地运行
+
+1. 安装依赖
 
 ```bash
 npm install
-npm run dev     # http://localhost:5173
-npm run build   # 产出到 dist/
-npm run preview # 本地预览构建结果
 ```
 
-建议在 Chrome DevTools 切换 iPhone 14 Pro 模拟器体验。
+2. 配置环境变量
 
-## 页面
+复制 `.env.example` 为 `.env.local`，填入你新建的 Supabase 项目配置。
 
-| 路由 | 页面 | 亮点 |
-|---|---|---|
-| `/` | Splash 启动页 | 零件拼装动画，2.4s 后跳转 Browse |
-| `/browse` | Browse 档案库 | 软浮雕卡片 · 稀缺度拨盘 · 共享元素过渡 |
-| `/detail/:id` | 机械展台 | 封面拖拽 3D 翻转 · 真空管 VU 表 · 磨损图纸热区 |
-| `/vault` | 个人收藏箱 | 抽屉式横向滚动 · 下拉刷新弹簧回弹 |
-| `/trade/:id` | 交易合同 | 长按 300ms 落章完成 · 印章落地动画 |
-| `/linking` | 上架流程 | 矩阵码扫描 → AI 价格匹配 → 视觉校准上传 |
-| `/profile` | 收藏家档案 | 基础资料、统计、设置入口 |
+3. 初始化新库
 
-## 目录结构
+在新的 Supabase 项目 SQL Editor 中依次执行：
 
-```
-src/
-├─ App.tsx           路由 + 转场 + 底部导航壳
-├─ main.tsx          入口
-├─ index.css         全局 CSS 变量、颗粒噪点、安全区
-├─ components/       AlbumCard · BottomNav · FloatingAction · HapticTap · RelaySlider
-├─ pages/            Splash · Browse · Detail · Vault · Trade · Linking · Profile
-├─ data/albums.ts    专辑 Mock 数据
-└─ hooks/useHaptic.ts  15ms 触觉反馈
+```sql
+-- 先执行
+\i supabase/schema.sql
+
+-- 再执行
+\i supabase/seed.sql
 ```
 
-## 设计 Token
+如果你是直接在 Supabase Web SQL Editor 里粘贴执行，就按顺序分别粘贴两个文件内容。
 
-| 用途 | 色值 |
-|---|---|
-| 基础背景 | `#E8E4D9` (paper) |
-| 主交互 | `#1A4B9E` (ink) |
-| 金属装饰 | `#C7C2B5` (silver) |
-| 印章 | `#B23A3A` (stamp) |
+4. 启动开发环境
 
-阴影统一使用 `shadow-neumo` / `shadow-neumo-inset`，严禁追加黑色粗重阴影。
+```bash
+npm run dev
+```
 
-## 无障碍
+默认地址：
 
-- `prefers-reduced-motion: reduce` 下所有动画降级为即时淡入
-- 触控元素均 ≥ 44×44 pt
-- 触觉反馈仅在支持 `navigator.vibrate` 的设备生效
+- [http://localhost:3000](http://localhost:3000)
 
-## 原型参考
+## 关键目录
 
-`HTML原型页.html` 保留作为视觉对照，不参与构建。
+```text
+app/                  Next.js 页面与 API route
+components/           新的 UI 组件
+lib/                  Supabase 客户端、映射和工具函数
+providers/            AuthProvider
+supabase/schema.sql   全新数据库结构、RLS、RPC、Storage policy
+supabase/seed.sql     新种子数据
+legacy-src/           旧原型代码，仅作参考
+```
+
+## 必需环境变量
+
+见 `.env.example`：
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+## 新 Supabase 设计
+
+- `profiles`
+- `catalog_releases`
+- `inventory_items`
+- `market_listings`
+- `orders`
+- `wallet_ledger`
+- `posts`
+
+交易通过数据库 RPC `purchase_listing(...)` 完成；上架通过 `create_listing(...)` 完成。
+
+## 部署
+
+直接部署到 Vercel。只需在项目环境变量中填入同一套 Supabase 配置即可。
+
+## Supabase 接入
+
+更完整的新库接入步骤见：
+
+- [SUPABASE_SETUP.md](/Users/shi/projects/mediterranean-relay/SUPABASE_SETUP.md)
+
+完成后可用这个健康检查接口确认项目是否已真正连接到新库：
+
+- [http://localhost:3000/api/health](http://localhost:3000/api/health)

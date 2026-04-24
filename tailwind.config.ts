@@ -1,32 +1,43 @@
 import type { Config } from 'tailwindcss';
 
 export default {
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './lib/**/*.{ts,tsx}',
+    './providers/**/*.{ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
         paper: '#E8E4D9',
         ink: '#1A4B9E',
         silver: '#C7C2B5',
-        inkSoft: '#D1CCC0',
+        inkSoft: '#D6E0F2',
         stamp: '#B23A3A',
+        bronze: '#7D634C',
       },
       fontFamily: {
-        serif: ['"Playfair Display"', 'serif'],
-        sans: ['Inter', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'serif'],
+        sans: ['var(--font-inter)', 'sans-serif'],
       },
       boxShadow: {
         neumo:
-          '5px 5px 12px rgba(0,0,0,0.07), -5px -5px 12px rgba(255,255,255,0.85)',
+          '0 18px 38px rgba(26, 75, 158, 0.12), 0 2px 10px rgba(255, 255, 255, 0.26)',
         'neumo-sm':
-          '3px 3px 6px rgba(0,0,0,0.06), -3px -3px 6px rgba(255,255,255,0.8)',
+          '0 10px 22px rgba(26, 75, 158, 0.09), 0 2px 6px rgba(255, 255, 255, 0.2)',
         'neumo-inset':
-          'inset 3px 3px 8px rgba(0,0,0,0.07), inset -3px -3px 8px rgba(255,255,255,0.85)',
+          '0 0 0 1px rgba(26, 75, 158, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 12px 28px rgba(26, 75, 158, 0.08)',
         'neumo-inset-sm':
-          'inset 2px 2px 5px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.8)',
+          '0 0 0 1px rgba(26, 75, 158, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 8px 18px rgba(26, 75, 158, 0.06)',
+        'paper-card': '0 18px 38px rgba(26, 75, 158, 0.12)',
       },
       letterSpacing: {
         widest2: '0.4em',
+      },
+      backgroundImage: {
+        grain:
+          "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
       },
     },
   },
