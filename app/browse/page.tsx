@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Genre, ListingSummary } from '@/lib/types';
+import { BrowseEntryIntro } from '@/components/browse-entry-intro';
 import { RelaySlider } from '@/components/relay-slider';
 import { GenreCarousel } from '@/components/genre-carousel';
 import { PrototypeAlbumCard } from '@/components/prototype-album-card';
@@ -21,6 +22,9 @@ export default function BrowsePage() {
   const [error, setError] = useState('');
   const [genre, setGenre] = useState<Genre | 'All'>('All');
   const [rarity, setRarity] = useState(rarityMax);
+  const [showIntro, setShowIntro] = useState(false);
+  const [introChecked, setIntroChecked] = useState(false);
+  const [introMinimumElapsed, setIntroMinimumElapsed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -55,6 +59,46 @@ export default function BrowsePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const introKey = 'medrelay:browse-entry-intro:v1';
+
+    try {
+      if (window.sessionStorage.getItem(introKey)) {
+        setIntroChecked(true);
+        return;
+      }
+      setShowIntro(true);
+      setIntroChecked(true);
+    } catch {
+      setShowIntro(true);
+      setIntroChecked(true);
+    }
+
+    const timer = window.setTimeout(() => {
+      setIntroMinimumElapsed(true);
+    }, 2600);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!showIntro || !introMinimumElapsed || loading) {
+      return;
+    }
+
+    try {
+      window.sessionStorage.setItem('medrelay:browse-entry-intro:v1', 'seen');
+    } catch {
+      // Ignore storage failures; the intro can safely replay next visit.
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowIntro(false);
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [introMinimumElapsed, loading, showIntro]);
+
   const filtered = useMemo(
     () =>
       listings.filter((listing) => {
@@ -71,35 +115,45 @@ export default function BrowsePage() {
 
   return (
     <div className="h-full overflow-y-auto no-scrollbar pt-safe">
-      <PageTitle english="Mediterranean Relay" chinese="地中海中继站" className="pb-8 pt-12" />
+      <BrowseEntryIntro visible={showIntro} />
 
-      <div className="mb-4 px-6">
-        <RelaySlider min={rarityMin} max={rarityMax} value={rarity} onChange={setRarity} label="Archive Collection" />
-      </div>
+      <div
+        className={`origin-center transition-all duration-700 ease-out ${
+          !introChecked || showIntro
+            ? 'scale-[0.985] opacity-0 blur-[2px]'
+            : 'scale-100 opacity-100 blur-0'
+        }`}
+      >
+        <PageTitle english="Mediterranean Relay" chinese="地中海中继站" className="pb-8 pt-12" />
 
-      <div className="mb-10 px-6">
-        <GenreCarousel value={genre} onChange={setGenre} />
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-ink" />
+        <div className="mb-4 px-6">
+          <RelaySlider min={rarityMin} max={rarityMax} value={rarity} onChange={setRarity} label="Archive Collection" />
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-12 px-6 pb-40">
-          {filtered.map((listing) => (
-            <PrototypeAlbumCard key={listing.id} listing={listing} />
-          ))}
-          {filtered.length === 0 && (
-            <div className="col-span-2 py-20 text-center font-serif italic opacity-40">
-              {error || '暂无匹配此筛选条件的专辑'}
-            </div>
-          )}
-        </div>
-      )}
 
-      <FloatingAction />
-      <BottomNav />
+        <div className="mb-10 px-6">
+          <GenreCarousel value={genre} onChange={setGenre} />
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 size={24} className="animate-spin text-ink" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-12 px-6 pb-40">
+            {filtered.map((listing) => (
+              <PrototypeAlbumCard key={listing.id} listing={listing} />
+            ))}
+            {filtered.length === 0 && (
+              <div className="col-span-2 py-20 text-center font-serif italic opacity-40">
+                {error || '暂无匹配此筛选条件的专辑'}
+              </div>
+            )}
+          </div>
+        )}
+
+        <FloatingAction />
+        <BottomNav />
+      </div>
     </div>
   );
 }
