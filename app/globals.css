@@ -196,13 +196,11 @@ select {
 .browse-intro-slice {
   width: 100%;
   margin-bottom: 18px;
-  padding: 8px;
-  background: rgba(248, 245, 239, 0.74);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 28px;
-  box-shadow: 14px 18px 34px rgba(26, 75, 158, 0.1), -8px -10px 20px rgba(255, 255, 255, 0.44);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  padding: 6px;
+  background: rgba(248, 245, 239, 0.46);
+  border-radius: 26px;
+  box-shadow: none;
+  outline: none;
 }
 
 .browse-intro-strip-up,

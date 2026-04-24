@@ -12,62 +12,62 @@ const introAlbums: IntroAlbum[] = [
   {
     title: 'The Dark Side of the Moon',
     artist: 'Pink Floyd',
-    coverUrl: 'https://coverartarchive.org/release-group/f5093c06-23e3-404f-aeaa-40f72885ee3a/front-500',
+    coverUrl: '/intro-albums/dark-side-of-the-moon.jpg',
   },
   {
     title: 'Abbey Road',
     artist: 'The Beatles',
-    coverUrl: 'https://coverartarchive.org/release-group/9162580e-5df4-32de-80cc-f45a8d8a9b1d/front-500',
+    coverUrl: '/intro-albums/abbey-road.jpg',
   },
   {
     title: 'Homogenic',
     artist: 'Bjork',
-    coverUrl: 'https://coverartarchive.org/release-group/810272e0-aef1-3d85-b2d3-e512e87fc38c/front-500',
+    coverUrl: '/intro-albums/homogenic.jpg',
   },
   {
     title: 'OK Computer',
     artist: 'Radiohead',
-    coverUrl: 'https://coverartarchive.org/release-group/b1392450-e666-3926-a536-22c65f834433/front-500',
+    coverUrl: '/intro-albums/ok-computer.jpg',
   },
   {
     title: 'Blue',
     artist: 'Joni Mitchell',
-    coverUrl: 'https://coverartarchive.org/release-group/42d725fb-a8b7-388c-8866-3b02789af326/front-500',
+    coverUrl: '/intro-albums/blue.jpg',
   },
   {
     title: 'A Love Supreme',
     artist: 'John Coltrane',
-    coverUrl: 'https://coverartarchive.org/release-group/77cf47ba-58cd-3f3d-a5f9-79bf89860421/front-500',
+    coverUrl: '/intro-albums/a-love-supreme.jpg',
   },
   {
     title: 'Mingus Ah Um',
     artist: 'Charles Mingus',
-    coverUrl: 'https://coverartarchive.org/release-group/48ec720b-2fc2-35dd-8130-5b186c4abcbc/front-500',
+    coverUrl: '/intro-albums/mingus-ah-um.jpg',
   },
   {
     title: 'Rumours',
     artist: 'Fleetwood Mac',
-    coverUrl: 'https://coverartarchive.org/release-group/416bb5e5-c7d1-3977-8fd7-7c9daf6c2be6/front-500',
+    coverUrl: '/intro-albums/rumours.jpg',
   },
   {
     title: 'Hounds of Love',
     artist: 'Kate Bush',
-    coverUrl: 'https://coverartarchive.org/release-group/017f2a37-a78f-3578-9611-fa40408e5d90/front-500',
+    coverUrl: '/intro-albums/hounds-of-love.jpg',
   },
   {
     title: 'Kind of Blue',
     artist: 'Miles Davis',
-    coverUrl: 'https://coverartarchive.org/release-group/8e8a594f-2175-38c7-a871-abb68ec363e7/front-500',
+    coverUrl: '/intro-albums/kind-of-blue.jpg',
   },
   {
     title: 'Buena Vista Social Club',
     artist: 'Buena Vista Social Club',
-    coverUrl: 'https://coverartarchive.org/release-group/32bbab8e-02c0-30d2-9e23-a19739864b84/front-500',
+    coverUrl: '/intro-albums/buena-vista-social-club.jpg',
   },
   {
     title: 'Astral Weeks',
     artist: 'Van Morrison',
-    coverUrl: 'https://coverartarchive.org/release-group/7d568f14-d86e-3584-97d0-c1824599de04/front-500',
+    coverUrl: '/intro-albums/astral-weeks.jpg',
   },
 ];
 
@@ -83,9 +83,10 @@ function IntroSlice({ album, index }: { album: IntroAlbum; index: number }) {
         <img
           src={album.coverUrl}
           alt={`${album.title} cover`}
-          className="h-full w-full object-cover opacity-85 mix-blend-multiply"
-          loading={index < 6 ? 'eager' : 'lazy'}
+          className="h-full w-full object-cover opacity-90"
+          loading="eager"
           decoding="async"
+          fetchPriority={index < 4 ? 'high' : 'auto'}
         />
       </div>
       <p className="mt-2 truncate font-serif text-[12px] leading-none text-ink">
@@ -133,30 +134,33 @@ export function BrowseEntryIntro({ visible }: { visible: boolean }) {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(255,255,255,0.72),transparent_34%),radial-gradient(circle_at_80%_24%,rgba(26,75,158,0.12),transparent_32%),linear-gradient(180deg,#f0ece2_0%,#e8e4d9_64%,#dfd7ca_100%)]" />
-          <div className="pointer-events-none absolute inset-0 mx-auto flex max-w-md justify-center gap-4 overflow-hidden px-3 opacity-90 [mask-image:linear-gradient(180deg,transparent_0%,black_12%,black_86%,transparent_100%)]">
+          <motion.div
+            className="pointer-events-none absolute inset-0 mx-auto flex max-w-md justify-center gap-4 overflow-hidden px-3 [mask-image:linear-gradient(180deg,transparent_0%,black_12%,black_86%,transparent_100%)]"
+            initial={{ opacity: 0, y: 16, scale: 1.03 }}
+            animate={{ opacity: 0.9, y: 0, scale: 1 }}
+            transition={{ delay: 1.15, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          >
             <Strip albums={columns[0]} delay={-1} />
             <Strip albums={columns[1]} reverse delay={-5} />
             <Strip albums={columns[2]} delay={-8} />
             <Strip albums={columns[3]} reverse delay={-3} />
-          </div>
+          </motion.div>
 
           <motion.div
-            className="absolute inset-x-0 top-[34%] mx-auto flex max-w-md flex-col items-center px-8 text-center"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="pointer-events-none absolute inset-0 mx-auto flex max-w-md items-center justify-center px-10 text-center"
+            initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
+            animate={{
+              opacity: [0, 1, 0.7, 0],
+              y: [10, 0, -4, -12],
+              filter: ['blur(10px)', 'blur(0px)', 'blur(0px)', 'blur(8px)'],
+            }}
+            transition={{ duration: 1.85, times: [0, 0.32, 0.72, 1], ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="paper-panel px-7 py-6">
-              <p className="text-[10px] font-bold uppercase tracking-[0.42em] text-ink/45">
-                Archive Warming
-              </p>
-              <h1 className="mt-3 font-serif text-[38px] leading-none text-ink">
-                Mediterranean Relay
-              </h1>
-              <p className="mt-3 text-[11px] font-bold tracking-[0.36em] text-ink/35">
-                专辑切片正在归档
-              </p>
-            </div>
+            <h1 className="font-serif text-[48px] leading-[0.92] tracking-[-0.05em] text-ink drop-shadow-[0_18px_40px_rgba(26,75,158,0.16)]">
+              Mediterranean
+              <br />
+              Relay
+            </h1>
           </motion.div>
 
           <div className="absolute inset-x-0 bottom-12 mx-auto flex max-w-md justify-center px-8">
@@ -165,7 +169,7 @@ export function BrowseEntryIntro({ visible }: { visible: boolean }) {
                 className="h-full rounded-full bg-ink"
                 initial={{ x: '-100%' }}
                 animate={{ x: '110%' }}
-                transition={{ duration: 1.7, repeat: Infinity, ease: 'easeInOut' }}
+                transition={{ duration: 1.9, repeat: Infinity, ease: 'easeInOut' }}
               />
             </div>
           </div>

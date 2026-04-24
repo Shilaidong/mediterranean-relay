@@ -15,6 +15,7 @@ import { systemListings } from '@/lib/system-showcase';
 const genres: Array<Genre | 'All'> = ['All', 'Jazz', 'Rock', 'Folk', 'Soul', 'Classical'];
 const rarityMin = 12;
 const rarityMax = 85;
+const browseIntroKey = 'medrelay:browse-entry-intro:v2';
 
 export default function BrowsePage() {
   const [listings, setListings] = useState<ListingSummary[]>([]);
@@ -23,8 +24,6 @@ export default function BrowsePage() {
   const [genre, setGenre] = useState<Genre | 'All'>('All');
   const [rarity, setRarity] = useState(rarityMax);
   const [showIntro, setShowIntro] = useState(false);
-  const [introChecked, setIntroChecked] = useState(false);
-  const [introMinimumElapsed, setIntroMinimumElapsed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -60,44 +59,28 @@ export default function BrowsePage() {
   }, []);
 
   useEffect(() => {
-    const introKey = 'medrelay:browse-entry-intro:v1';
+    const forceIntro = new URLSearchParams(window.location.search).has('intro');
 
     try {
-      if (window.sessionStorage.getItem(introKey)) {
-        setIntroChecked(true);
+      if (!forceIntro && window.sessionStorage.getItem(browseIntroKey)) {
         return;
       }
       setShowIntro(true);
-      setIntroChecked(true);
     } catch {
       setShowIntro(true);
-      setIntroChecked(true);
-    }
-
-    const timer = window.setTimeout(() => {
-      setIntroMinimumElapsed(true);
-    }, 2600);
-
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!showIntro || !introMinimumElapsed || loading) {
-      return;
-    }
-
-    try {
-      window.sessionStorage.setItem('medrelay:browse-entry-intro:v1', 'seen');
-    } catch {
-      // Ignore storage failures; the intro can safely replay next visit.
     }
 
     const timer = window.setTimeout(() => {
       setShowIntro(false);
-    }, 180);
+      try {
+        window.sessionStorage.setItem(browseIntroKey, 'seen');
+      } catch {
+        // Ignore storage failures; the intro can safely replay next visit.
+      }
+    }, 4700);
 
     return () => window.clearTimeout(timer);
-  }, [introMinimumElapsed, loading, showIntro]);
+  }, []);
 
   const filtered = useMemo(
     () =>
@@ -119,9 +102,7 @@ export default function BrowsePage() {
 
       <div
         className={`origin-center transition-all duration-700 ease-out ${
-          !introChecked || showIntro
-            ? 'scale-[0.985] opacity-0 blur-[2px]'
-            : 'scale-100 opacity-100 blur-0'
+          showIntro ? 'scale-[0.99]' : 'scale-100'
         }`}
       >
         <PageTitle english="Mediterranean Relay" chinese="地中海中继站" className="pb-8 pt-12" />
@@ -150,10 +131,10 @@ export default function BrowsePage() {
             )}
           </div>
         )}
-
-        <FloatingAction />
-        <BottomNav />
       </div>
+
+      <FloatingAction />
+      <BottomNav />
     </div>
   );
 }
